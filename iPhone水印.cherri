@@ -1,0 +1,87 @@
+#define name 华为水印 Mate X6-X7
+#define color teal
+#define glyph camera
+#define inputs image, pdf
+#define from sharesheet
+#include 'actions/photos'
+#include 'actions/documents'
+#include 'actions/media'
+#include 'actions/images'
+#include 'actions/text'
+#include 'actions/web'
+#include 'actions/crypto'
+
+/*
+华为水印快捷指令 —— 结合 shiraijikuu(华为 logo) + Long-Alex(快捷指令框架) 改造
+- 功能：任意照片一键加「HUAWEI Mate X6 / Mate X7」相机水印（花瓣 logo + 机型名 + 真实拍摄参数）
+- 单张 / 批量：选照片时多选即可批量
+- 唯一外部依赖：1 个 config.json（已内联华为 logo + 模板 + 机型列表，不再拉远程 template/menu/背景）
+- 部署：把下面 configUrl 改成你自己托管的 config.json 地址（见同目录 README）
+*/
+
+// ===== 重要：把下面地址改成你自己托管的 config.json 地址 =====
+// 不改成自己的地址，运行时只会拉到不含华为的旧配置，水印会出错。
+// 托管方法见《华为水印使用说明.md》（GitHub Pages / Gitee / 任意静态托管均可）。
+const configUrl = "https://raw.githubusercontent.com/invvj/huawei-watermark-shortcut/main/config.json"
+const configRaw = downloadURL(configUrl, nil)
+@config = getDictionary(configRaw)
+const configDict = getDictionary(@config)
+
+// ===== 照片来源 =====
+const sourcePick = chooseFromList(["相册选择", "文件选择", "拍照"], "{@config['promptSource']}")
+const sourceName = getText(sourcePick)
+@photo = ""
+if sourceName == "相册选择" {
+    @photo = selectPhotos(true)
+} else {
+    if sourceName == "文件选择" {
+        @photo = selectFile(true)
+    } else {
+        @photo = takePhoto()
+    }
+}
+
+// ===== 品牌（华为已置顶，默认即可）=====
+const logoPick = chooseFromList(@config['brandOrder'], "{@config['promptLogo']}")
+const logoName = getText(logoPick)
+const logoMarkupRaw = getValue(configDict, "brandLogos.{logoName}")
+const logoMarkup = getText(logoMarkupRaw)
+
+// ===== 机型（Mate X6 / Mate X7 一键选，不手输）=====
+const modelPick = chooseFromList(@config['modelOptions'], "{@config['promptModel']}")
+const modelInput = getText(modelPick)
+
+// ===== 风格 =====
+const stylePick = chooseFromList(@config['styleOrder'], "{@config['promptStyle']}")
+const styleName = getText(stylePick)
+const cssNameRaw = getValue(configDict, "styles.{styleName}.css")
+const cssName = getText(cssNameRaw)
+
+// ===== 取内联模板（不再远程下载）=====
+const templateHtml = getText(getValue(configDict, "templateHtml"))
+
+// ===== 静态注入 =====
+@staticTpl = replaceText("__LOGO__", "{logoMarkup}", "{templateHtml}")
+@staticTpl = replaceText("__THEME__", "{cssName}", "{@staticTpl}")
+@staticTpl = replaceText("__CUSTOM__", "", "{@staticTpl}")
+@staticTpl = replaceText("__MODEL__", "{modelInput}", "{@staticTpl}")
+
+// ===== 批量处理（选照片时多选＝批量）=====
+const photoList = list("{ShortcutInput.image}", "{@photo.image}")
+const repeatResult = for photo in photoList {
+    const metaDict = getImageDetail(@photo, "Metadata Dictionary")
+    const photoWidth = getImageDetail(@photo, "Width")
+    const photoHeight = getImageDetail(@photo, "Height")
+    // 渲染尺寸按原图比例（保持长宽比，叠加后不变形）
+    const renderHeight = calculateExpression("rint(1512 * {photoHeight} / {photoWidth})")
+    @injectTpl = replaceText("__HEIGHT__", "{renderHeight}", "{@staticTpl}")
+    @injectTpl = replaceText("__METADATA__", "{metaDict}", "{@injectTpl}")
+    const richText = getRichTextFromHTML(@injectTpl)
+    // 把模板渲染成透明水印图层（尺寸=原图比例）
+    const watermark = makeImageFromRichText(richText, "1512", "{renderHeight}")
+    // 真机式叠加：透明水印图层叠到照片右下角（不再是下方独立条带）
+    customImageOverlay(@photo, watermark, "{photoWidth}", "{photoHeight}", "0", "100", "Bottom Right")
+}
+show("{repeatResult}")
+savePhoto(repeatResult)
+showNotification("{@config['msgDone']}", nil, true)
