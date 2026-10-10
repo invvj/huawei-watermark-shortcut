@@ -26,17 +26,20 @@
 const configUrl = "https://testingcf.jsdelivr.net/gh/invvj/huawei-watermark-shortcut@main/config.json"
 const configRaw = downloadURL(configUrl, nil)
 @config = getDictionary(configRaw)
-const configDict = getDictionary(@config)
+const configDict = getDictionary(configRaw)
 
 // ===== 照片来源 =====
 @sourceList = ["相册选择", "文件选择", "拍照"]
 const sourcePick = chooseFromList(@sourceList, "{@config['promptSource']}")
-const sourceName = getText(sourcePick)
+@sourceName = getText(sourcePick)
+if @sourceName == "" {
+    @sourceName = "相册选择"
+}
 @photo = ""
-if sourceName == "相册选择" {
+if @sourceName == "相册选择" {
     @photo = selectPhotos(true)
 } else {
-    if sourceName == "文件选择" {
+    if @sourceName == "文件选择" {
         @photo = selectFile(true)
     } else {
         @photo = takePhoto()
@@ -45,18 +48,28 @@ if sourceName == "相册选择" {
 
 // ===== 品牌（华为已置顶，默认即可）=====
 const logoPick = chooseFromList(@config['brandOrder'], "{@config['promptLogo']}")
-const logoName = getText(logoPick)
-const logoMarkupRaw = getValue(configDict, "brandLogos.{logoName}")
+@logoName = getText(logoPick)
+if @logoName == "" {
+    @logoName = "Huawei"
+}
+const logoMarkupRaw = getValue(configDict, "brandLogos.{@logoName}")
 const logoMarkup = getText(logoMarkupRaw)
 
 // ===== 机型（Mate X6 / Mate X7 一键选，不手输）=====
 const modelPick = chooseFromList(@config['modelOptions'], "{@config['promptModel']}")
-const modelInput = getText(modelPick)
+@modelInput = getText(modelPick)
+if @modelInput == "" {
+    @modelInput = "{@config['modelDefault']}"
+}
 
 // ===== 风格 =====
+// 键全用 ASCII（light/dark），键路径与品牌环节同构（brandLogos.{@logoName} 已验证可走通）
 const stylePick = chooseFromList(@config['styleOrder'], "{@config['promptStyle']}")
-const styleName = getText(stylePick)
-const cssNameRaw = getValue(configDict, "styles.{styleName}.css")
+@styleName = getText(stylePick)
+if @styleName == "" {
+    @styleName = "light"
+}
+const cssNameRaw = getValue(configDict, "styles.{@styleName}.css")
 const cssName = getText(cssNameRaw)
 
 // ===== 取内联模板（不再远程下载）=====
@@ -67,7 +80,7 @@ const templateHtml = getText(templateHtmlRaw)
 @staticTpl = replaceText("__LOGO__", "{logoMarkup}", "{templateHtml}")
 @staticTpl = replaceText("__THEME__", "{cssName}", "{@staticTpl}")
 @staticTpl = replaceText("__CUSTOM__", "", "{@staticTpl}")
-@staticTpl = replaceText("__MODEL__", "{modelInput}", "{@staticTpl}")
+@staticTpl = replaceText("__MODEL__", "{@modelInput}", "{@staticTpl}")
 
 // ===== 批量处理（选照片时多选＝批量）=====
 const photoList = list("{ShortcutInput.image}", "{@photo.image}")
