@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>华为 Mate X6/X7 水印快捷指令 · 一键部署</title>
+<style>
+  :root { color-scheme: light dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0;
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #0e1620; color: #e8edf2;
+    line-height: 1.7;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-size: 22px; margin: 0 0 6px; }
+  .sub { color: #9fb0c0; margin: 0 0 28px; font-size: 14px; }
+  .card {
+    background: #16212e; border: 1px solid #243240; border-radius: 14px;
+    padding: 18px 20px; margin-bottom: 18px;
+  }
+  .card h2 { font-size: 16px; margin: 0 0 10px; color: #fff; }
+  .ok { color: #4ade80; font-weight: 600; }
+  code { background: #0b1118; padding: 2px 6px; border-radius: 6px; font-size: 13px; word-break: break-all; }
+  input[type=text] {
+    width: 100%; padding: 11px 12px; border-radius: 10px;
+    border: 1px solid #2c3c4e; background: #0b1118; color: #e8edf2; font-size: 14px;
+  }
+  button {
+    margin-top: 12px; padding: 11px 18px; border: 0; border-radius: 10px;
+    background: #cf0a2c; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer;
+  }
+  button:hover { background: #e01030; }
+  a { color: #5ab0ff; }
+  ol, ul { padding-left: 20px; margin: 8px 0; }
+  li { margin: 6px 0; }
+  .hint { font-size: 13px; color: #9fb0c0; margin-top: 8px; min-height: 18px; }
+  .step { color: #cf0a2c; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>华为 Mate X6 / X7 水印快捷指令</h1>
+  <p class="sub">给任意照片加真机风华为水印（红色花瓣 logo + HUAWEI 机型 + XMAGE + 真实拍摄参数），支持单张与批量。</p>
+
+  <div class="card">
+    <h2>① 配置已托管 <span class="ok">✓</span></h2>
+    <p>运行时配置 <code>config.json</code> 已公开托管：</p>
+    <p><code>https://raw.githubusercontent.com/invvj/huawei-watermark-shortcut/main/config.json</code></p>
+    <p style="color:#9fb0c0;font-size:13px;margin:8px 0 0">快捷指令从这里读取 logo / 模板 / 机型列表，无需其他依赖。源码、模板、校验脚本也已一并托管在本仓库。</p>
+  </div>
+
+  <div class="card">
+    <h2>② 在 iPhone 上导入</h2>
+    <p>把编译好的 <code>iPhone水印.shortcut</code> 公开地址粘贴进来，点按钮即可在 iPhone 上直接召唤「快捷指令」App 完成导入：</p>
+    <input type="text" id="sc" placeholder="粘贴你的 iPhone水印.shortcut 公开地址（https://...）">
+    <button onclick="go()">一键导入到 iPhone</button>
+    <p class="hint" id="hint"></p>
+  </div>
+
+  <div class="card">
+    <h2>③ 还没有 .shortcut？两步生成</h2>
+    <ol>
+      <li>下载源码 <a href="iPhone水印.cherri">iPhone水印.cherri</a>（已内含上面的配置地址）。</li>
+      <li>打开 <a href="https://playground.cherrilang.org/" target="_blank" rel="noopener">Cherri Playground</a> → 粘贴源码 → <b>Build</b> → <b>Export</b>（自动签名）→ 得到 <code>iPhone水印.shortcut</code>。</li>
+      <li>把得到的 <code>.shortcut</code> 托管到任意公开地址，把地址填到上方②即可一键导入；或直接 AirDrop 到 iPhone 用「文件」App 打开导入。</li>
+    </ol>
+    <p style="color:#9fb0c0;font-size:13px">首次从网页导入需在「设置 → 快捷指令 → 允许不受信任的快捷指令」开一下。完整文档见 <a href="华为水印使用说明.md">华为水印使用说明.md</a>。</p>
+  </div>
+</div>
+<script>
+  function go() {
+    var u = document.getElementById('sc').value.trim();
+    var h = document.getElementById('hint');
+    if (!u) { h.textContent = '请先填入 .shortcut 的公开地址'; return; }
+    if (u.indexOf('http') !== 0) { h.textContent = '地址需以 http(s):// 开头'; return; }
+    location.href = 'shortcuts://import-shortcut?url=' + encodeURIComponent(u);
+  }
+</script>
+</body>
+</html>
