@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watermark</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            background: transparent;
+        }
+        /* 整张画布透明，只让右下角的水印单元显示出来（叠加用） */
+        .watermark-root {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        /* 紧凑单元：锚定右下角，像真机华为水印那样 */
+        .hw-unit {
+            position: absolute;
+            right: calc(__HEIGHT__ * 0.045px);
+            bottom: calc(__HEIGHT__ * 0.045px);
+            font-family: "HarmonyOS Sans SC", "HarmonyOS Sans", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+            color: var(--text);
+            font-size: calc(__HEIGHT__ * 0.026px);
+            line-height: 1.2;
+            text-align: left;
+            text-shadow: var(--shadow);
+            user-select: none;
+        }
+        .hw-row {
+            display: flex;
+            align-items: center;
+            gap: calc(__HEIGHT__ * 0.014px);
+        }
+        .hw-logo {
+            display: flex;
+            align-items: center;
+        }
+        .logo-size {
+            height: calc(__HEIGHT__ * 0.034px);
+            width: auto;
+            display: block;
+        }
+        .logo-color {
+            fill: var(--accent);
+        }
+        .hw-name {
+            display: flex;
+            align-items: baseline;
+            white-space: nowrap;
+        }
+        .hw-brand {
+            font-weight: 800;
+            letter-spacing: 0.04em;
+        }
+        .hw-model {
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            margin-left: calc(__HEIGHT__ * 0.006px);
+        }
+        .hw-xmage {
+            color: var(--accent);
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            font-size: 0.92em;
+            margin-left: calc(__HEIGHT__ * 0.006px);
+        }
+        .hw-params {
+            font-weight: 500;
+            opacity: 0.92;
+            margin-top: calc(__HEIGHT__ * 0.004px);
+            font-size: 0.78em;
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="watermark-root">
+        <div class="hw-unit" id="hwUnit">
+            <div class="hw-row">
+                <div class="hw-logo">__LOGO__</div>
+                <div class="hw-name">
+                    <span class="hw-brand" id="hwBrand"></span>
+                    <span class="hw-model" id="hwModel"></span>
+                </div>
+                <div class="hw-xmage">XMAGE</div>
+            </div>
+            <div class="hw-params" id="hwParams"></div>
+        </div>
+    </div>
+    <script>
+        const customDisplay = "__CUSTOM__";
+        const imageJson = __METADATA__ ;
+
+        // 强制使用快捷指令注入的机型（华为 Mate X6/X7），不被照片自带 TIFF Model 覆盖
+        const cameraModel = "__MODEL__";
+        const brand = cameraModel.split(' ')[0];
+        const model = cameraModel.split(' ').slice(1).join(' ');
+        document.getElementById('hwBrand').textContent = brand;
+        document.getElementById('hwModel').textContent = model;
+
+        // 读取源照片真实 EXIF（每张照片参数不同，按原图来）
+        const { FocalLenIn35mmFilm: focalLength = 24, FNumber: fNumber = 1.8, ExposureTime: exposureTimeRaw = 1 / 60, ISOSpeedRatings: iso = 100 } = imageJson["{Exif}"] ?? {};
+        const exposureTime = exposureTimeRaw < 1 ? Math.round(1 / exposureTimeRaw) : Math.round(exposureTimeRaw);
+
+        const cameraSettings = `${focalLength}mm · ƒ/${fNumber.toFixed(2)} · 1/${exposureTime}s · ISO${iso}`;
+        document.getElementById('hwParams').textContent = customDisplay ? customDisplay : cameraSettings;
+
+        const themes = {
+            // 浅色：白字 + 暗阴影（适合深色/夜景照片）
+            Light: { text: '#FFFFFF', accent: '#CF0A2C', shadow: '0 0 2px rgba(0, 0, 0, 0.45)' },
+            // 深色：纯黑字无阴影（适合浅色/白天照片）
+            Dark:  { text: '#000000', accent: '#CF0A2C', shadow: 'none' }
+        };
+        const setTheme = (themeName) => {
+            const t = themes[themeName] || themes.Light;
+            const root = document.documentElement;
+            root.style.setProperty('--text', t.text);
+            root.style.setProperty('--accent', t.accent);
+            root.style.setProperty('--shadow', t.shadow);
+        };
+        setTheme('__THEME__');
+    </script>
+</body>
+</html>
