@@ -23,7 +23,7 @@
 // ===== 重要：把下面地址改成你自己托管的 config.json 地址 =====
 // 不改成自己的地址，运行时只会拉到不含华为的旧配置，水印会出错。
 // 托管方法见《华为水印使用说明.md》（GitHub Pages / Gitee / 任意静态托管均可）。
-const configUrl = "https://raw.githubusercontent.com/invvj/huawei-watermark-shortcut/main/config.json"
+const configUrl = "https://testingcf.jsdelivr.net/gh/invvj/huawei-watermark-shortcut@main/config.json"
 const configRaw = downloadURL(configUrl, nil)
 @config = getDictionary(configRaw)
 const configDict = getDictionary(@config)
