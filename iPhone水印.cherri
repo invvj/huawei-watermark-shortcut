@@ -1,4 +1,4 @@
-#define name 华为水印 Mate X6-X7
+#define name Huawei Watermark X6 X7
 #define color teal
 #define glyph camera
 #define inputs image, pdf
@@ -10,6 +10,7 @@
 #include 'actions/text'
 #include 'actions/web'
 #include 'actions/crypto'
+#include 'actions/math'
 
 /*
 华为水印快捷指令 —— 结合 shiraijikuu(华为 logo) + Long-Alex(快捷指令框架) 改造
@@ -28,7 +29,8 @@ const configRaw = downloadURL(configUrl, nil)
 const configDict = getDictionary(@config)
 
 // ===== 照片来源 =====
-const sourcePick = chooseFromList(["相册选择", "文件选择", "拍照"], "{@config['promptSource']}")
+@sourceList = ["相册选择", "文件选择", "拍照"]
+const sourcePick = chooseFromList(@sourceList, "{@config['promptSource']}")
 const sourceName = getText(sourcePick)
 @photo = ""
 if sourceName == "相册选择" {
@@ -58,7 +60,8 @@ const cssNameRaw = getValue(configDict, "styles.{styleName}.css")
 const cssName = getText(cssNameRaw)
 
 // ===== 取内联模板（不再远程下载）=====
-const templateHtml = getText(getValue(configDict, "templateHtml"))
+const templateHtmlRaw = getValue(configDict, "templateHtml")
+const templateHtml = getText(templateHtmlRaw)
 
 // ===== 静态注入 =====
 @staticTpl = replaceText("__LOGO__", "{logoMarkup}", "{templateHtml}")
@@ -72,8 +75,9 @@ const repeatResult = for photo in photoList {
     const metaDict = getImageDetail(@photo, "Metadata Dictionary")
     const photoWidth = getImageDetail(@photo, "Width")
     const photoHeight = getImageDetail(@photo, "Height")
-    // 渲染尺寸按原图比例（保持长宽比，叠加后不变形）
-    const renderHeight = calculateExpression("rint(1512 * {photoHeight} / {photoWidth})")
+    // 渲染尺寸按原图比例（保持长宽比，叠加后不变形）；表达式里 const 用裸名，round 直传 @var
+    @renderHeightRaw = 1512 * photoHeight / photoWidth
+    const renderHeight = round(@renderHeightRaw, "Integer")
     @injectTpl = replaceText("__HEIGHT__", "{renderHeight}", "{@staticTpl}")
     @injectTpl = replaceText("__METADATA__", "{metaDict}", "{@injectTpl}")
     const richText = getRichTextFromHTML(@injectTpl)
