@@ -41,7 +41,10 @@
 </head>
 <body>
 <div class="wrap">
-  <script>var FILE_URL = 'https://raw.githubusercontent.com/invvj/huawei-watermark-shortcut/main/Huawei-Watermark.shortcut';</script>
+  <script>
+    var SHA = '5a726397b6ed600b2eedb957b625028c5263c249';
+    var FILE_URL = 'https://testingcf.jsdelivr.net/gh/invvj/huawei-watermark-shortcut@' + SHA + '/Huawei-Watermark.shortcut';
+  </script>
   <h1>华为 Mate X6 / X7 水印快捷指令</h1>
   <p class="sub">给任意照片加真机风华为水印（红色花瓣 logo + HUAWEI 机型 + XMAGE + 真实拍摄参数），支持单张与批量。</p>
 
@@ -49,7 +52,7 @@
     <h2>⭐ 已编译+签名成品 · 一键添加（推荐）</h2>
     <p>成品 <code>华为水印.shortcut</code> 已编译并完成 HubSign 签名（AEA1），托管在本仓库。<b>在 iPhone 上打开本页面</b>，点下面按钮即可召唤「快捷指令」完成导入：</p>
     <button onclick="location.href='shortcuts://import-shortcut?url=' + encodeURIComponent(FILE_URL) + '&amp;silent=false'">📲 一键添加华为水印快捷指令</button>
-    <p class="hint">Safari 直接打开直链也可以：先下载文件 → 再从「文件/下载」里点开它 → 自动跳转快捷指令导入。</p>
+    <p class="hint">线路：主用 testingcf.jsdelivr.net，备用 cdn / fastly / gcore.jsdelivr.net（把域名部分替换即可）；GitHub raw 线路：<a href="https://raw.githubusercontent.com/invvj/huawei-watermark-shortcut/main/Huawei-Watermark.shortcut">raw 直链</a>。Safari 直接打开直链也可以：先下载文件 → 再从「文件/下载」里点开它 → 自动跳转快捷指令导入。</p>
   </div>
 
   <div class="card">
